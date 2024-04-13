@@ -29,21 +29,35 @@ function tokenizeInput(inp::String)
 	println(halfs)
 	for (side, val) in halfs
 		if (val[1] == "*")
-			return perror("'*' symbol found at the start of the $side side of the equation.")
+			return perror("'*' operator found at the start of the $side side of the equation.")
 		end
 		if (occursin(r"^[\+\-\*]$", val[end]))
 			return perror("Mathematical operator found at the end of the $side side of the equation.")
 		end
 	end
-	for (i, tk) in pairs(halfs["left"])
+	dedupedtkns = Dict("left" => String[], "right" => String[])
+	for tk in halfs["left"]
 		if (!occursin(r"^(\d|\d?X(\^\d)?|\+|-|\*)$", tk))
 			return perror("Malformed input: '$tk'.")
 		end
 
-		if (tk == "*" && i > 1 && occursin(r"^(\+|-|\*)$", halfs["left"][i - 1]))
+		if (tk == "*" && occursin(r"^(\+|-|\*)$", dedupedtkns["left"][end]))
 			return perror("Mathematical operator found before '*'.")
+		elseif (tk == "+" && !isempty(dedupedtkns["left"]) && (dedupedtkns["left"][end] == "-" || dedupedtkns["left"][end] == "+"))
+			continue
+		elseif(tk == "-" && !isempty(dedupedtkns["left"]))
+			if (dedupedtkns["left"][end] == "-")
+				dedupedtkns["left"][end] = "+"
+			elseif (dedupedtkns["left"][end] == "+")
+				dedupedtkns["left"][end] = "-"
+			else
+				push!(dedupedtkns["left"], tk)
+			end
+		else
+			push!(dedupedtkns["left"], tk)
 		end
 	end
+	println(dedupedtkns)
 end
 
 println("Given input is:")
