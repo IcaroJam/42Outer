@@ -36,25 +36,27 @@ function tokenizeInput(inp::String)
 		end
 	end
 	dedupedtkns = Dict("left" => String[], "right" => String[])
-	for tk in halfs["left"]
-		if (!occursin(r"^(\d|\d?X(\^\d)?|\+|-|\*)$", tk))
-			return perror("Malformed input: '$tk'.")
-		end
-
-		if (tk == "*" && occursin(r"^(\+|-|\*)$", dedupedtkns["left"][end]))
-			return perror("Mathematical operator found before '*'.")
-		elseif (tk == "+" && !isempty(dedupedtkns["left"]) && (dedupedtkns["left"][end] == "-" || dedupedtkns["left"][end] == "+"))
-			continue
-		elseif(tk == "-" && !isempty(dedupedtkns["left"]))
-			if (dedupedtkns["left"][end] == "-")
-				dedupedtkns["left"][end] = "+"
-			elseif (dedupedtkns["left"][end] == "+")
-				dedupedtkns["left"][end] = "-"
-			else
-				push!(dedupedtkns["left"], tk)
+	for (side, half) in halfs
+		for tk in half
+			if (!occursin(r"^(\d|\d?X(\^\d)?|\+|-|\*)$", tk))
+				return perror("Malformed input: '$tk'.")
 			end
-		else
-			push!(dedupedtkns["left"], tk)
+
+			if (tk == "*" && occursin(r"^(\+|-|\*)$", dedupedtkns[side][end]))
+				return perror("Mathematical operator found before '*'.")
+			elseif (tk == "+" && !isempty(dedupedtkns[side]) && (dedupedtkns[side][end] == "-" || dedupedtkns[side][end] == "+"))
+				continue
+			elseif(tk == "-" && !isempty(dedupedtkns[side]))
+				if (dedupedtkns[side][end] == "-")
+					dedupedtkns[side][end] = "+"
+				elseif (dedupedtkns[side][end] == "+")
+					dedupedtkns[side][end] = "-"
+				else
+					push!(dedupedtkns[side], tk)
+				end
+			else
+				push!(dedupedtkns[side], tk)
+			end
 		end
 	end
 	println(dedupedtkns)
