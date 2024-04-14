@@ -27,7 +27,7 @@ function tokenizeInput(inp::String)
 	# Cleanup of duped operators and token validation:
 	spaceOutOps = (str) -> split(replace(str, r"(\+|-|\*)" => s" \1 "))
 	halfs = Dict("left" => spaceOutOps(halfs[1]), "right" => spaceOutOps(halfs[2]))
-	println(halfs)
+	# println(halfs)
 	for (side, val) in halfs
 		if (val[1] == "*")
 			perror("'*' operator found at the start of the $side side of the equation.")
@@ -60,16 +60,20 @@ function tokenizeInput(inp::String)
 			end
 		end
 	end
-	println(dedupedtkns)
+	# println(dedupedtkns)
 	return dedupedtkns
 end
 
 function lexer(tkns::Dict{String, Vector{String}})
-	retPol = [0., 0., 0.] # Organized as [Order0, Order1, Order2]
+	pol = Dict{Int64, Float64}()
 	updatePol = function(num, ord, side)
 		sign = side == "left" ? 1 : -1
 
-		retPol[ord + 1] += sign * num
+		if (haskey(pol, ord))
+			pol[ord] += sign * num
+		else
+			pol[ord] = sign * num
+		end
 	end
 
 	for (side, hlf) in tkns
@@ -77,15 +81,9 @@ function lexer(tkns::Dict{String, Vector{String}})
 		ord = 0
 		i = 1
 		while i <= length(hlf)
-			if (hlf[i] == "-")
-				println("PREADD: $num, $ord")
+			if (hlf[i] == "-" || hlf[i] == "+")
 				updatePol(num, ord, side)
-				num = -1
-				ord = 0
-			elseif (hlf[i] == "+")
-				println("PREADD: $num, $ord")
-				updatePol(num, ord, side)
-				num = 1
+				num = hlf[i] == "-" ? -1 : 1
 				ord = 0
 			elseif (hlf[i] == "*")
 				if (hlf[i + 1] == "-")
@@ -94,10 +92,10 @@ function lexer(tkns::Dict{String, Vector{String}})
 				end
 			else # If it isn't an operator it has to be a number or X
 				sub = match(r"(\d+\.?\d*)?(?:(X)\^?(\d+)?)?", hlf[i]).captures
-				println("CAPTURAS: $sub")
 				if (!isnothing(sub[1]))
 					num *= parse(Float64, sub[1])
 				end
+				# If there's no numeric order but there's an X (e.g.: 5X), the order is 1
 				if (!isnothing(sub[3]))
 					ord += parse(Int64, sub[3])
 				elseif(!isnothing(sub[2]))
@@ -106,15 +104,20 @@ function lexer(tkns::Dict{String, Vector{String}})
 			end
 			i += 1
 		end
-		println("PREADD: $num, $ord")
 		updatePol(num, ord, side)
 	end
-	println(retPol)
+	retPol = sort(collect(pol), by = x -> x[1])
+	print("Reduced form:")
+	for (ord, num) in retPol
+		if (num != 0)
+			print(" $(num < 0 ? '-' : '+') $(isinteger(num) ? round(Int, abs(num)) : round(abs(num), digits=4)) * X^$ord")
+		end
+	end
 end
 
 println("Given input is:")
 for arg in ARGS
 	println(arg)
 	println("\tInitiating tokenization...")
-	lexer(tokenizeInput(arg))
+	lexer(tokenizeInput(uppercase(arg)))
 end
