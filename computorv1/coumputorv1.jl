@@ -16,6 +16,8 @@ function perror(str::AbstractString, excode = -1)
 end
 
 function tokenizeInput(inp::String)
+	println("\tInitiating tokenization...")
+
 	# Divide the equation into it's left and righthandside:
 	halfs = split(inp, '=')
 	if (length(halfs) !== 2)
@@ -61,6 +63,7 @@ function tokenizeInput(inp::String)
 		end
 	end
 	# println(dedupedtkns)
+	println("\tTokenization completed!")
 	return dedupedtkns
 end
 
@@ -107,17 +110,26 @@ function lexer(tkns::Dict{String, Vector{String}})
 		updatePol(num, ord, side)
 	end
 	retPol = sort(collect(pol), by = x -> x[1])
+	degree = 0
 	print("Reduced form:")
 	for (ord, num) in retPol
 		if (num != 0)
+			if (ord > degree)
+				degree = ord
+			end
 			print(" $(num < 0 ? '-' : '+') $(isinteger(num) ? round(Int, abs(num)) : round(abs(num), digits=4)) * X^$ord")
 		end
+	end
+	print('\n')
+	if (degree > 2)
+		perror("Polynomial degree: $degree. Computorv can't solve polinomials of order greater than 2.")
+	else
+		println("Polynomial degree: $degree")
 	end
 end
 
 println("Given input is:")
 for arg in ARGS
 	println(arg)
-	println("\tInitiating tokenization...")
 	lexer(tokenizeInput(uppercase(arg)))
 end
