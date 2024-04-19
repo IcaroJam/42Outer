@@ -1,34 +1,46 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    coumputorv1.jl                                     :+:      :+:    :+:    #
+#    parser.jl                                          :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ntamayo- <ntamayo-@student.42malaga.com>   +#+  +:+       +#+         #
+#    By: senari <ntamayo-@student.42malaga.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/04/12 13:20:46 by ntamayo-          #+#    #+#              #
-#    Updated: 2024/04/12 13:29:18 by ntamayo-         ###   ########.fr        #
+#    Created: 2024/04/15 08:29:34 by senari            #+#    #+#              #
+#    Updated: 2024/04/15 08:29:41 by senari           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-function perror(str::AbstractString, excode = -1)
-	printstyled(stderr, "$str\n", color=:red)
-	exit(excode)
+include("perror.jl")
+
+function  getUnicodeSuperscript(num::Number)
+	ret = ""
+	for i in num
+		if (i === 1)
+			ret *= '\u00b9'
+		elseif (1 < i < 4)
+			ret *= Char(0x00b0 + i)
+		else
+			ret *= Char(0x2070 + i)
+		end
+	end
+	ret
 end
 
 function tokenizeInput(inp::String)
-	println("\tInitiating tokenization...")
+	println("\n\tInitiating tokenization...")
 
 	# Divide the equation into it's left and righthandside:
 	halfs = split(inp, '=')
 	if (length(halfs) !== 2)
 		perror("The provided input must have one and only one '='.")
-	elseif (isempty(halfs[1]) || isempty(halfs[2]))
-		perror("The provided input must have both left and right sides in the equation.")
 	end
 
 	# Cleanup of duped operators and token validation:
 	spaceOutOps = (str) -> split(replace(str, r"(\+|-|\*)" => s" \1 "))
 	halfs = Dict("left" => spaceOutOps(halfs[1]), "right" => spaceOutOps(halfs[2]))
+	if (isempty(halfs["left"]) || isempty(halfs["right"]))
+		perror("The provided input must have both left and right sides in the equation.")
+	end
 	# println(halfs)
 	for (side, val) in halfs
 		if (val[1] == "*")
@@ -63,8 +75,8 @@ function tokenizeInput(inp::String)
 		end
 	end
 	# println(dedupedtkns)
-	println("\tTokenization completed!")
-	return dedupedtkns
+	println("\tTokenization completed!\n")
+	dedupedtkns
 end
 
 function lexer(tkns::Dict{String, Vector{String}})
@@ -111,16 +123,18 @@ function lexer(tkns::Dict{String, Vector{String}})
 	end
 	retPol = sort(collect(pol), by = x -> x[1])
 	degree = 0
+	firstPrintFlag = false
 	print("Reduced form:")
 	for (ord, num) in retPol
 		if (num != 0)
 			if (ord > degree)
 				degree = ord
 			end
-			print(" $(num < 0 ? '-' : '+') $(isinteger(num) ? round(Int, abs(num)) : round(abs(num), digits=4)) * X^$ord")
+			print(" $(num < 0 ? "- " : firstPrintFlag ? "+ " : "")$(isinteger(num) ? round(Int, abs(num)) : round(abs(num), digits=4))$(ord !== 0 ? "X$(getUnicodeSuperscript(ord))" : "")")
+			firstPrintFlag = true
 		end
 	end
-	print('\n')
+	println(" = 0")
 	if (degree > 2)
 		perror("Polynomial degree: $degree. Computorv can't solve polinomials of order greater than 2.")
 	else
@@ -128,8 +142,6 @@ function lexer(tkns::Dict{String, Vector{String}})
 	end
 end
 
-println("Given input is:")
-for arg in ARGS
-	println(arg)
-	lexer(tokenizeInput(uppercase(arg)))
+function parseInput(inp::AbstractString)
+    lexer(tokenizeInput(uppercase(inp)))
 end
