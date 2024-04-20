@@ -6,14 +6,17 @@
 #    By: senari <ntamayo-@student.42malaga.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/04/15 08:29:34 by senari            #+#    #+#              #
-#    Updated: 2024/04/15 08:29:41 by senari           ###   ########.fr        #
+#    Updated: 2024/04/20 12:12:19 by senari           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 include("perror.jl")
 
 function  getUnicodeSuperscript(num::Number)
-	ret = ""
+	ret = num === 0 ? "" : "X"
+	if (num < 2)
+		return ret
+	end
 	for i in num
 		if (i === 1)
 			ret *= '\u00b9'
@@ -121,16 +124,16 @@ function lexer(tkns::Dict{String, Vector{String}})
 		end
 		updatePol(num, ord, side)
 	end
-	retPol = sort(collect(pol), by = x -> x[1])
+	sortedPol = sort(collect(pol), by = x -> x[1])
 	degree = 0
 	firstPrintFlag = false
 	print("Reduced form:")
-	for (ord, num) in retPol
+	for (ord, num) in sortedPol
 		if (num != 0)
 			if (ord > degree)
 				degree = ord
 			end
-			print(" $(num < 0 ? "- " : firstPrintFlag ? "+ " : "")$(isinteger(num) ? round(Int, abs(num)) : round(abs(num), digits=4))$(ord !== 0 ? "X$(getUnicodeSuperscript(ord))" : "")")
+			print(" $(num < 0 ? "- " : firstPrintFlag ? "+ " : "")$(isinteger(num) ? round(Int, abs(num)) : round(abs(num), digits=4))$(getUnicodeSuperscript(ord))")
 			firstPrintFlag = true
 		end
 	end
@@ -140,6 +143,7 @@ function lexer(tkns::Dict{String, Vector{String}})
 	else
 		println("Polynomial degree: $degree")
 	end
+	Dict("degree" => degree, "data" => pol)
 end
 
 function parseInput(inp::AbstractString)

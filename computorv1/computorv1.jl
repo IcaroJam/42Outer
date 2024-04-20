@@ -1,16 +1,17 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    computorv1.jl                                     :+:      :+:    :+:    #
+#    computorv1.jl                                      :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: ntamayo- <ntamayo-@student.42malaga.com>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/04/12 13:20:46 by ntamayo-          #+#    #+#              #
-#    Updated: 2024/04/15 08:29:19 by senari           ###   ########.fr        #
+#    Updated: 2024/04/20 12:12:09 by senari           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 include("parser.jl")
+include("solver.jl")
 
 nArgs = length(ARGS)
 if (nArgs === 0)
@@ -23,8 +24,10 @@ end
 println("Given input is:")
 arg = ARGS[1]
 println(arg)
-parseInput(arg)
+parsedData = parseInput(arg)
 
 # Solver aquí: En función del grado hace una cosa u otra. Para grado dos vale con aplicar
 # la fórmula, calculando las distintas partes individualmente para ver si la solución es real
 # (interior de la raíz +) o no, etc...
+# Manejar identidades, orden 1, orden 2 con alguna o ninguna solución compleja...
+solve(parsedData["data"], parsedData["degree"])
