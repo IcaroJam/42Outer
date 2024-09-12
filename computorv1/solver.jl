@@ -23,7 +23,7 @@ function solve(data::Dict{Int64, Float64}, degree::Int64)
         # Solve it with X = (-b ± √(b²-4ac)) / 2a
         b = haskey(data, 1) ? data[1] : 0
         discriminant = b^2 - 4*data[0]*data[2]
-        sqd = sqrt(Complex(discriminant))
+        sqd = discriminant < 0 ? sqrt(Complex(discriminant)) : sqrt(discriminant)
         if (discriminant > 0)
             println("Positive discriminant. The equation has two real solutions:")
             println("X1 = $((-b + sqd) / (2*data[2]))")
