@@ -137,6 +137,9 @@ function lexer(tkns::Dict{String, Vector{String}})
 			firstPrintFlag = true
 		end
 	end
+	if (sortedPol == [0 => 0.0])
+		print(" 0")
+	end
 	println(" = 0")
 	if (degree > 2)
 		perror("Polynomial degree: $degree. Computorv can't solve polinomials of order greater than 2.")
