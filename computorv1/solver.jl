@@ -12,7 +12,7 @@
 
 function solve(data::Dict{Int64, Float64}, degree::Int64)
     if (degree === 0) # Identities
-        if (data[0] === 0) # 0 = 0
+        if (data[0] == 0) # 0 = 0
             println("The given equation is a polynomial identity. Every real number is a solution.")
         else # N = 0
             println("The resulting expression can't be evaluated. No solutions exist.")
@@ -28,7 +28,7 @@ function solve(data::Dict{Int64, Float64}, degree::Int64)
             println("Positive discriminant. The equation has two real solutions:")
             println("X1 = $((-b + sqd) / (2*data[2]))")
             println("X2 = $((-b - sqd) / (2*data[2]))")
-        elseif (discriminant === 0)
+        elseif (discriminant == 0)
             println("The discriminant is zero. The equation has a single, repeated, real solution:")
             println("X = $(-b / (2*data[2]))")
         else
